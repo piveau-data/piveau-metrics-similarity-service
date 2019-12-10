@@ -1,0 +1,7 @@
+version: '2'
+services:
+    mqa-metrics:
+        image: registry.gitlab.com/european-data-portal/dataset-similarity-service
+        build: .
+        ports:
+            - '8086:8086'

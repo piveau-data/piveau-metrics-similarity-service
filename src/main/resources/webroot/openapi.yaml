@@ -1,0 +1,99 @@
+# Note: An invalid OpenAPI 3 yaml file will cause the following exception at startup:
+# io.vertx.ext.web.api.contract.RouterFactoryException: Wrong specification url/path: webroot/openapi.yaml
+
+openapi: 3.0.0
+
+info:
+  version: 0.0.1-alpha
+  title: MQA Similarity Service
+  x-logo:
+    url: "./edplogo.png"
+
+
+
+servers:
+  - url: 'http://localhost:8086'
+    description: Local development server
+
+paths:
+
+  /fingerprint:
+    post:
+      description: Fingerprint languages
+      summary: Calculates fingerprints on datasets for the given languages
+      operationId: fingerprintLanguages
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: language
+          in: query
+          description: Language to fingerprint
+          schema:
+            type: string
+          required: false
+      responses:
+        202:
+          description: Request accepted
+        500:
+          description: Internal server error
+
+  /similarity/{datasetId}:
+    get:
+      description: Similarities for dataset
+      summary: Retrieves a list of the x most similar datasets for a given dataset ID
+      operationId: similaritiesForDataset
+      parameters:
+        - name: datasetId
+          in: path
+          description: Dataset ID for which similar datasets are to be retrieved
+          schema:
+            type: string
+          required: true
+        - name: limit
+          in: query
+          description: Number of similarities to return. Defaults to the number configured in the application
+          schema:
+            type: number
+            format: int32
+          required: false
+      responses:
+        200:
+          description: Request is valid and has been processed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SimilarityResponse'
+              examples:
+                example:
+                  value: [ {"uri": "http://data.set/id",
+                            "id": "id",
+                            "dist": 10} ]
+        500:
+          description: Internal server error
+
+components:
+
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: Authorization
+
+  schemas:
+    SimilarityResponse:
+      description: List of datasets with their respective distances
+      type: array
+      items:
+        type: object
+        properties:
+          uri:
+            description: URI of the dataset
+            type: string
+            format: uri
+          id:
+            description: ID of the dataset
+            type: string
+          dist:
+            description: Numeric distance to the dataset passed in the request
+            type: number
+            format: int32
